@@ -1,0 +1,64 @@
+================================================================================
+E.V.E. SYSTEM // ANDROID TABLET SETUP & USAGE GUIDE
+(SPIDER-MAN: BRAND NEW DAY HUD INTERFACE)
+================================================================================
+
+This package contains the complete, functional E.V.E. System HUD interface.
+Here are the 3 ways to use it on your Android Tablet:
+
+--------------------------------------------------------------------------------
+METHOD 1: ACCESS FROM TABLET VIA WI-FI (RECOMMENDED - BEST EXPERIENCE)
+--------------------------------------------------------------------------------
+This method gives you the full tablet experience with 100% features enabled,
+including live microphone speech-to-text, audio clips, and Groq AI:
+
+1. Keep your computer and Android Tablet connected to the SAME Wi-Fi network.
+2. On your computer, open a terminal in this folder and run:
+     node server.js
+3. You will see an IP address in the console output, for example:
+     ▶ On your Android Tablet: http://192.168.0.9:3000
+4. On your Android tablet, open Google Chrome (or Edge / Brave) and go to:
+     http://192.168.0.9:3000
+5. Tap the 3 dots in Chrome -> "Add to Home screen" or "Install app" to run it
+   in fullscreen kiosk mode like a real Spider-Man Stark HUD device!
+
+--------------------------------------------------------------------------------
+METHOD 2: OPEN DIRECTLY ON TABLET WITHOUT A PC (ZERO SERVER NEEDED)
+--------------------------------------------------------------------------------
+You can also run E.V.E. completely standalone directly from the unzipped folder:
+
+1. Unzip the folder on your tablet's internal storage or Downloads.
+2. IMPORTANT: Do NOT open index.html using the default Android "HTML Viewer"
+   (the default viewer is a basic text reader that disables JavaScript).
+3. In your file manager, tap or long-press "index.html" -> Select "Open with" ->
+   Choose "Google Chrome" (or Firefox / Edge / Brave).
+4. Tap anywhere on the screen once to unlock Web Audio.
+5. All AI assistance, Groq API inference, E.V. Liam audio files, 360-degree radar,
+   and visualizers will work directly!
+   * Note: Android Chrome's security policy restricts physical microphone access
+     on local "file:///" URLs. When tapping the mic on direct files, E.V.E.
+     automatically opens the keyboard prompt so you can transmit queries.
+
+--------------------------------------------------------------------------------
+METHOD 3: RUN A LOCAL SERVER DIRECTLY ON YOUR ANDROID TABLET
+--------------------------------------------------------------------------------
+If you want microphone support on the tablet without using a PC:
+
+1. Install a free 1-click lightweight web server app from Google Play Store:
+   - "Simple HTTP Server" (by monkey365) OR
+   - "AWebServer"
+2. Open the app, select the unzipped folder as the root directory, and tap "Start".
+3. Tap the link (e.g. http://localhost:8080) to open in Chrome on your tablet.
+4. Because it runs on localhost, Chrome grants full microphone permissions!
+
+--------------------------------------------------------------------------------
+FILES INCLUDED IN THIS PACKAGE:
+--------------------------------------------------------------------------------
+- index.html   : Main Spider-Man HUD dashboard (responsive tablet layout)
+- style.css    : Cyber styling matching Ev.png (scaled for touch & tablets)
+- app.js       : Groq API client, Liam voice audio player, & canvas visualizers
+- server.js    : Node.js web server with 0.0.0.0 LAN IP broadcaster & API proxy
+- audio/       : E.V. Liam and Spider-Man Brand New Day audio files (.mp3)
+- Ev.png       : Original interface mockup reference image
+- README.md    : System architecture and technical overview
+================================================================================

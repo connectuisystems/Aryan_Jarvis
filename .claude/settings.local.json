@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:fish.audio)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:marvel.fandom.com)",
+      "WebFetch(domain:screenrant.com)",
+      "WebFetch(domain:www.google.com)"
+    ]
+  }
+}
