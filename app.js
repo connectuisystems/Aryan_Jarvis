@@ -5,7 +5,7 @@
 
 // Global Configuration
 const CONFIG = {
-  groqApiKey: localStorage.getItem('eve_groq_api_key') || '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',
+  groqApiKey: '',
   groqModel: localStorage.getItem('eve_groq_model') || 'groq/compound',
   activeVoice: localStorage.getItem('eve_active_voice') || 'liam',
   sfxEnabled: localStorage.getItem('eve_sfx_enabled') !== 'false',

@@ -2788,7 +2788,7 @@ html, body {
                   <h3>GROQ INFERENCE ENGINE</h3>
                   <div class="form-group">
                     <label>Groq API Key:</label>
-                    <input type="password" id="inputGroqKey" value="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" class="cyber-input">
+                    <input type="password" id="inputGroqKey" value="" class="cyber-input">
                     <span class="input-hint">Using user-provided key. Automatically saves to browser storage.</span>
                   </div>
                   <div class="form-group">
@@ -2976,7 +2976,7 @@ html, body {
 
 // Global Configuration
 const CONFIG = {
-  groqApiKey: localStorage.getItem('eve_groq_api_key') || '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',
+  groqApiKey: localStorage.getItem('eve_groq_api_key') || '',
   groqModel: localStorage.getItem('eve_groq_model') || 'groq/compound',
   activeVoice: localStorage.getItem('eve_active_voice') || 'liam',
   sfxEnabled: localStorage.getItem('eve_sfx_enabled') !== 'false',

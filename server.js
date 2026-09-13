@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+require('dotenv').config();
 
 const PORT = process.env.PORT || 3000;
 
@@ -42,7 +43,7 @@ const server = http.createServer((req, res) => {
         const groqResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': req.headers['authorization'] || `Bearer ${payload.apiKey}`,
+            'Authorization': `Bearer ${process.env.GROQ_API_KEY || payload.apiKey || ''}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({

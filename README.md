@@ -15,7 +15,7 @@ A futuristic, high-tech AI Assistant interface inspired by **Spider-Man: Brand N
 
 ### 2. ⚡ Real-Time Groq AI Integration
 - Powered by ultra-fast Groq LPU models (`groq/compound`, `openai/gpt-oss-120b`, `qwen/qwen3.8-27b`).
-- Pre-configured with the user-provided Groq API key: `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`.
+- API key is stored securely in `.env` as `GROQ_API_KEY` and loaded server-side via `dotenv`.
 - Authentic **E.V.E. Persona**: Tailored specifically for Peter Parker (Spider-Man), offering tactical combat advice, web-fluid chemistry assistance, suit diagnostics, and Midtown High study support.
 - Live typewriter streaming text rendering with interactive neural terminal (`Communications` view).
 

@@ -23,7 +23,7 @@
 | **Frontend UI** | HTML5, CSS3 Glassmorphism (`backdrop-filter`), SVG Spider-Web Vector, Canvas 2D Visualizers |
 | **Fonts** | Google Fonts: `Orbitron`, `Rajdhani`, `Share Tech Mono` |
 | **AI Backend** | Groq API (`https://api.groq.com/openai/v1/chat/completions`) using model `groq/compound` (fallback: `openai/gpt-oss-120b`, `qwen/qwen3.8-27b`) |
-| **Groq API Key** | `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` |
+| **Groq API Key** | Stored in `.env` as `GROQ_API_KEY` (loaded server-side via `dotenv`) |
 | **Voice Audio** | Fish Audio: Liam E.V. model (`a2eaac4c2e1040c09be1257675c8c8c8`), plus Brand New Day, Danu, and Klay voice clips |
 | **Audio Engine** | Web Audio API `AudioContext` with custom synthesized sci-fi sound effects & frequency analyser |
 | **Local Server** | Node.js HTTP server (`server.js`) bound to `0.0.0.0:3000`, auto-detecting Wi-Fi LAN IP |
