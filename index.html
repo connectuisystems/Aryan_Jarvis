@@ -3303,9 +3303,6 @@ function toggleVoiceInput() {
 // ==========================================================================
 async function callGroqAPI(userQuery) {
   const apiKey = CONFIG.groqApiKey;
-  if (!apiKey) {
-    throw new Error('Groq API Key is missing. Please check settings.');
-  }
 
   // Append user message to history
   chatHistory.push({ role: 'user', content: userQuery });
@@ -3313,40 +3310,46 @@ async function callGroqAPI(userQuery) {
   let response;
   let lastErr = null;
 
-  // 1. Direct Call to Groq API (Works standalone on both http:// and file:// via CORS)
-  try {
-    response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: CONFIG.groqModel,
-        messages: chatHistory,
-        temperature: 0.65,
-        max_tokens: 350
-      })
-    });
-  } catch (directErr) {
-    lastErr = directErr;
-    // 2. If running on local server (http://), fallback to /api/chat proxy
-    if (window.location.protocol.startsWith('http')) {
-      try {
-        response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            apiKey: apiKey,
-            model: CONFIG.groqModel,
-            messages: chatHistory
-          })
-        });
-      } catch (proxyErr) {
-        lastErr = proxyErr;
-      }
+  // 1. If running on local server (http://), use /api/chat proxy (key comes from server .env)
+  if (window.location.protocol.startsWith('http')) {
+    try {
+      response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: CONFIG.groqModel,
+          messages: chatHistory
+        })
+      });
+    } catch (proxyErr) {
+      lastErr = proxyErr;
     }
   }
+
+  // 2. If proxy failed or running standalone (file://), try direct Groq call with client key
+  if (!response) {
+    if (!apiKey) {
+      throw new Error('Groq API Key is missing. Please check settings or run via the local server (node server.js).');
+    }
+    try {
+      response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: CONFIG.groqModel,
+          messages: chatHistory,
+          temperature: 0.65,
+          max_tokens: 350
+        })
+      });
+    } catch (directErr) {
+      lastErr = directErr;
+    }
+  }
+
 
   if (!response) {
     throw new Error(`Connection failed: Check internet connection or tablet Wi-Fi. (${lastErr ? lastErr.message : 'Unknown'})`);
