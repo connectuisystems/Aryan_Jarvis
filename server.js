@@ -40,10 +40,18 @@ const server = http.createServer((req, res) => {
     req.on('end', async () => {
       try {
         const payload = JSON.parse(body);
+
+        const apiKey = process.env.GROQ_API_KEY || payload.apiKey || '';
+        if (!apiKey) {
+          res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+          res.end(JSON.stringify({ error: 'GROQ_API_KEY is not configured on the server. Set it in your environment variables.' }));
+          return;
+        }
+
         const groqResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${process.env.GROQ_API_KEY || payload.apiKey || ''}`,
+            'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
@@ -53,14 +61,23 @@ const server = http.createServer((req, res) => {
             max_tokens: 350
           })
         });
-        const data = await groqResp.json();
+
+        // Read as text first to avoid JSON parse crash on empty/HTML error responses
+        const rawText = await groqResp.text();
+        let data;
+        try {
+          data = JSON.parse(rawText);
+        } catch (_) {
+          data = { error: `Groq returned an unexpected response (HTTP ${groqResp.status}): ${rawText.slice(0, 200)}` };
+        }
+
         res.writeHead(groqResp.status, {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         });
         res.end(JSON.stringify(data));
       } catch (err) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify({ error: err.message }));
       }
     });
