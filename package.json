@@ -1,0 +1,15 @@
+{
+  "name": "jarvis-eve-system",
+  "version": "1.0.0",
+  "description": "E.V.E. System - Spider-Man HUD Interface",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

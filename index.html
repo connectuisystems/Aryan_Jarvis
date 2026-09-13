@@ -3365,7 +3365,16 @@ async function callGroqAPI(userQuery) {
     throw new Error(`Groq API Error (${response.status}): ${parsedErr}`);
   }
 
-  const data = await response.json();
+  const rawText = await response.text();
+  let data;
+  try {
+    data = JSON.parse(rawText);
+  } catch (_) {
+    throw new Error(`Server returned an unreadable response. Raw: ${rawText.slice(0, 150)}`);
+  }
+  if (data.error) {
+    throw new Error(`Groq API Error: ${typeof data.error === 'object' ? data.error.message : data.error}`);
+  }
   const reply = data.choices?.[0]?.message?.content || 'Telemetry received, Peter. Awaiting next command.';
   
   chatHistory.push({ role: 'assistant', content: reply });
