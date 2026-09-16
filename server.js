@@ -84,6 +84,75 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Fish Audio TTS proxy route
+  if (req.url === '/api/tts' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const payload = JSON.parse(body);
+        const fishApiKey = process.env.FISH_AUDIO_API_KEY || payload.apiKey || '';
+        
+        if (!fishApiKey) {
+          res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+          res.end(JSON.stringify({ error: 'FISH_AUDIO_API_KEY is not configured on the server. Set it in your environment variables to enable dynamic TTS.' }));
+          return;
+        }
+
+        const ttsResp = await fetch('https://api.fish.audio/v1/tts', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${fishApiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            text: payload.text,
+            reference_id: payload.reference_id || 'a2eaac4c2e1040c09be1257675c8c8c8',
+            format: 'mp3',
+            latency: 'normal'
+          })
+        });
+
+        if (!ttsResp.ok) {
+          const errText = await ttsResp.text();
+          res.writeHead(ttsResp.status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+          res.end(JSON.stringify({ error: `Fish Audio API Error: ${errText}` }));
+          return;
+        }
+
+        res.writeHead(200, {
+          'Content-Type': 'audio/mpeg',
+          'Access-Control-Allow-Origin': '*'
+        });
+        
+        // Pipe the audio stream directly to the response
+        if (ttsResp.body) {
+          // fetch response body is a Web stream (ReadableStream)
+          const reader = ttsResp.body.getReader();
+          const pump = async () => {
+            const { done, value } = await reader.read();
+            if (done) {
+              res.end();
+              return;
+            }
+            res.write(value);
+            pump();
+          };
+          pump();
+        } else {
+          // Fallback if not streamed
+          const arrayBuffer = await ttsResp.arrayBuffer();
+          res.end(Buffer.from(arrayBuffer));
+        }
+
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
+
   let reqPath = decodeURI(req.url.split('?')[0]);
   if (reqPath === '/') reqPath = '/index.html';
   const filePath = path.join(__dirname, reqPath);

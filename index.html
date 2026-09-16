@@ -2816,6 +2816,11 @@ html, body {
                     </select>
                   </div>
                   <div class="form-group">
+                    <label>Fish Audio API Key (For Dynamic TTS):</label>
+                    <input type="password" id="inputFishKey" value="" class="cyber-input" placeholder="Required for dynamic voice responses">
+                    <span class="input-hint">Using user-provided key or server environment variable.</span>
+                  </div>
+                  <div class="form-group">
                     <label>Sound Effects & Ambient HUD SFX:</label>
                     <div class="checkbox-toggle">
                       <input type="checkbox" id="chkEnableSfx" checked>
@@ -2977,6 +2982,7 @@ html, body {
 // Global Configuration
 const CONFIG = {
   groqApiKey: localStorage.getItem('eve_groq_api_key') || '',
+  fishApiKey: localStorage.getItem('eve_fish_api_key') || '',
   groqModel: localStorage.getItem('eve_groq_model') || 'groq/compound',
   activeVoice: localStorage.getItem('eve_active_voice') || 'liam',
   sfxEnabled: localStorage.getItem('eve_sfx_enabled') !== 'false',
@@ -3198,6 +3204,108 @@ function setAssistantSpeaking(speaking) {
   }
 }
 
+async function generateAndPlayDynamicTTS(text, voiceModel) {
+  initAudioContext();
+  stopAllAudio();
+  
+  if (voiceModel === 'browser_tts') {
+    speakWithBrowserTTS(text);
+    return;
+  }
+  
+  setAssistantSpeaking(true);
+  updateVoiceStatus('Synthesizing Voice...');
+  
+  const fishKey = CONFIG.fishApiKey;
+  
+  // Mapping of local names to Fish Audio reference IDs (if available, otherwise fallback to Liam)
+  const referenceMap = {
+    'liam': 'a2eaac4c2e1040c09be1257675c8c8c8'
+  };
+  const refId = referenceMap[voiceModel] || 'a2eaac4c2e1040c09be1257675c8c8c8';
+
+  let response;
+  try {
+    if (window.location.protocol.startsWith('http')) {
+      // Use proxy
+      response = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text, reference_id: refId, apiKey: fishKey })
+      });
+    } else {
+      // Direct call (standalone file://)
+      if (!fishKey) {
+        updateVoiceStatus('Error: Fish API Key Missing');
+        speakWithBrowserTTS(text);
+        return;
+      }
+      response = await fetch('https://api.fish.audio/v1/tts', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${fishKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text: text,
+          reference_id: refId,
+          format: 'mp3',
+          latency: 'normal'
+        })
+      });
+    }
+
+    if (!response || !response.ok) {
+      console.warn('TTS API Error', response ? response.status : 'No response');
+      updateVoiceStatus('TTS Synthesis Failed. Using Fallback.');
+      speakWithBrowserTTS(text);
+      return;
+    }
+
+    const blob = await response.blob();
+    const audioUrl = URL.createObjectURL(blob);
+    
+    // We can reuse audioLiam or dynamically create an audio element
+    let dynamicAudio = document.getElementById('audioDynamicTTS');
+    if (!dynamicAudio) {
+      dynamicAudio = document.createElement('audio');
+      dynamicAudio.id = 'audioDynamicTTS';
+      document.body.appendChild(dynamicAudio);
+    }
+    
+    dynamicAudio.src = audioUrl;
+    
+    // Connect to analyser if needed
+    try {
+      if (!audioSourceNode && audioCtx && audioAnalyser) {
+        audioSourceNode = audioCtx.createMediaElementSource(dynamicAudio);
+        audioSourceNode.connect(audioAnalyser);
+        audioAnalyser.connect(audioCtx.destination);
+      }
+    } catch (e) {
+      // ignore routing errors
+    }
+
+    dynamicAudio.play().then(() => {
+      isAudioPlaying = true;
+      updateVoiceStatus('Speaking: Dynamic Audio');
+    }).catch(err => {
+      speakWithBrowserTTS(text);
+    });
+
+    dynamicAudio.onended = () => {
+      isAudioPlaying = false;
+      setAssistantSpeaking(false);
+      updateVoiceStatus('Listening...');
+      URL.revokeObjectURL(audioUrl);
+    };
+
+  } catch (err) {
+    console.error('TTS Generation error:', err);
+    speakWithBrowserTTS(text);
+  }
+}
+
 function updateVoiceStatus(statusText) {
   const el = document.getElementById('voiceStatusText');
   if (el) el.textContent = statusText;
@@ -3403,11 +3511,7 @@ async function handleUserTransmission(queryText) {
     typewriterEffect(greetingMsg, reply);
     appendChatMessage('E.V.E.', reply);
 
-    if (CONFIG.activeVoice === 'browser_tts') {
-      speakWithBrowserTTS(reply);
-    } else {
-      playVoiceSample(CONFIG.activeVoice);
-    }
+    generateAndPlayDynamicTTS(reply, CONFIG.activeVoice);
 
   } catch (err) {
     console.error('Groq query failed:', err);
@@ -3875,9 +3979,20 @@ function setupModalAndButtons() {
   // Settings
   const inputKey = document.getElementById('inputGroqKey');
   if (inputKey) {
+    inputKey.value = CONFIG.groqApiKey;
     inputKey.addEventListener('change', (e) => {
       CONFIG.groqApiKey = e.target.value.trim();
       localStorage.setItem('eve_groq_api_key', CONFIG.groqApiKey);
+      playSciFiSound('click');
+    });
+  }
+
+  const inputFishKey = document.getElementById('inputFishKey');
+  if (inputFishKey) {
+    inputFishKey.value = CONFIG.fishApiKey;
+    inputFishKey.addEventListener('change', (e) => {
+      CONFIG.fishApiKey = e.target.value.trim();
+      localStorage.setItem('eve_fish_api_key', CONFIG.fishApiKey);
       playSciFiSound('click');
     });
   }
