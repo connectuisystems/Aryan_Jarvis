@@ -109,7 +109,8 @@ const server = http.createServer((req, res) => {
             text: payload.text,
             reference_id: payload.reference_id || 'a2eaac4c2e1040c09be1257675c8c8c8',
             format: 'mp3',
-            latency: 'normal'
+            latency: 'normal',
+            model: 's2.1-pro-free'
           })
         });
 
