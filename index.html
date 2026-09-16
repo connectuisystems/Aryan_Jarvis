@@ -3412,6 +3412,11 @@ function toggleVoiceInput() {
 async function callGroqAPI(userQuery) {
   const apiKey = CONFIG.groqApiKey;
 
+  // Keep only the system prompt (index 0) and the last 20 messages to prevent 413 Payload Too Large
+  if (chatHistory.length > 21) {
+    chatHistory = [chatHistory[0], ...chatHistory.slice(-20)];
+  }
+
   // Append user message to history
   chatHistory.push({ role: 'user', content: userQuery });
 
